@@ -1,1545 +1,898 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Minecraft Mob Guesser</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0a0e14;
-  --bg2: #111820;
-  --bg3: #1a2230;
-  --green: #5ab552;
-  --green2: #3d7a38;
-  --green3: #2a5225;
-  --gold: #f5c542;
-  --gold2: #c9970a;
-  --red: #c0392b;
-  --red2: #922b21;
-  --blue: #3498db;
-  --purple: #9b59b6;
-  --text: #e8f0fe;
-  --text2: #a0b0c0;
-  --text3: #607080;
-  --border: #2a3a4a;
-  --border2: #3a5060;
-  --shadow: rgba(0,0,0,0.7);
-}
-
-* { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Press Start 2P', 'Courier New', monospace;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-  position: relative;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    linear-gradient(rgba(90,181,82,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(90,181,82,0.04) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ===== LAYOUT ===== */
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
-  position: relative;
-  z-index: 1;
-}
-
-/* ===== PIXEL BOX STYLE ===== */
-.pbox {
-  background: var(--bg2);
-  border: 3px solid var(--border2);
-  box-shadow:
-    4px 4px 0 0 #000,
-    inset 2px 2px 0 0 rgba(255,255,255,0.07),
-    inset -2px -2px 0 0 rgba(0,0,0,0.4);
-  border-radius: 2px;
-}
-
-.pbox-green {
-  background: var(--green3);
-  border-color: var(--green);
-  box-shadow:
-    4px 4px 0 0 #000,
-    0 0 20px rgba(90,181,82,0.15),
-    inset 2px 2px 0 0 rgba(255,255,255,0.1),
-    inset -2px -2px 0 0 rgba(0,0,0,0.4);
-}
-
-.pbox-gold {
-  background: #2a2200;
-  border-color: var(--gold);
-  box-shadow:
-    4px 4px 0 0 #000,
-    0 0 20px rgba(245,197,66,0.15),
-    inset 2px 2px 0 0 rgba(255,255,255,0.1),
-    inset -2px -2px 0 0 rgba(0,0,0,0.4);
-}
-
-/* ===== HEADER ===== */
-.header {
-  text-align: center;
-  padding: 30px 20px 20px;
-  position: relative;
-}
-
-.logo-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 10px;
-}
-
-.logo-icon {
-  width: 52px;
-  height: 52px;
-  background: var(--green2);
-  border: 3px solid var(--green);
-  box-shadow: 3px 3px 0 #000, inset 1px 1px 0 rgba(255,255,255,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  animation: bobIcon 2s ease-in-out infinite;
-}
-
-@keyframes bobIcon {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-.game-title {
-  font-size: clamp(10px, 2.5vw, 18px);
-  color: var(--green);
-  text-shadow: 2px 2px 0 var(--green3), 4px 4px 0 #000;
-  letter-spacing: 1px;
-  line-height: 1.6;
-}
-
-.subtitle {
-  font-size: 7px;
-  color: var(--text2);
-  margin-top: 8px;
-  letter-spacing: 2px;
-}
-
-/* ===== TOP BAR ===== */
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.lang-btn {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
-  padding: 8px 12px;
-  background: var(--bg3);
-  border: 2px solid var(--border2);
-  color: var(--text2);
-  cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: 2px 2px 0 #000;
-  letter-spacing: 1px;
-}
-
-.lang-btn:hover {
-  background: var(--green3);
-  border-color: var(--green);
-  color: var(--green);
-  transform: translateY(-1px);
-}
-
-/* ===== TIMER ===== */
-.timer-display {
-  font-size: 10px;
-  color: var(--gold);
-  text-shadow: 1px 1px 0 #000;
-  padding: 8px 14px;
-  background: #1a1500;
-  border: 2px solid var(--gold2);
-  box-shadow: 2px 2px 0 #000;
-}
-
-.timer-display.danger { color: var(--red); border-color: var(--red); animation: timerPulse 0.5s ease-in-out infinite; }
-@keyframes timerPulse { 0%,100%{opacity:1}50%{opacity:0.5} }
-
-/* ===== SCREENS ===== */
-.screen { display: none; }
-.screen.active { display: block; animation: fadeInScreen 0.3s ease; }
-@keyframes fadeInScreen { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-
-/* ===== INTRO SCREEN ===== */
-.intro-card {
-  text-align: center;
-  padding: 40px 30px;
-  margin: 20px 0;
-}
-
-.intro-icon { font-size: 60px; margin-bottom: 24px; display: block; animation: bobIcon 2s ease-in-out infinite; }
-
-.intro-title {
-  font-size: clamp(12px, 3vw, 20px);
-  color: var(--green);
-  text-shadow: 2px 2px 0 var(--green3), 4px 4px 0 #000;
-  margin-bottom: 16px;
-  line-height: 1.8;
-}
-
-.intro-desc {
-  font-size: 8px;
-  color: var(--text2);
-  line-height: 2;
-  margin-bottom: 30px;
-}
-
-.btn-group { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-
-.btn-primary {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
-  padding: 14px 24px;
-  background: var(--green2);
-  border: 3px solid var(--green);
-  color: #fff;
-  cursor: pointer;
-  text-shadow: 1px 1px 0 #000;
-  box-shadow: 4px 4px 0 #000, 0 0 15px rgba(90,181,82,0.3);
-  transition: all 0.1s;
-  letter-spacing: 1px;
-}
-
-.btn-primary:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 #000, 0 0 20px rgba(90,181,82,0.4); }
-.btn-primary:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #000; }
-
-.btn-secondary {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
-  padding: 12px 18px;
-  background: var(--bg3);
-  border: 2px solid var(--border2);
-  color: var(--text2);
-  cursor: pointer;
-  box-shadow: 3px 3px 0 #000;
-  transition: all 0.1s;
-  letter-spacing: 1px;
-}
-
-.btn-secondary:hover { background: var(--bg2); border-color: var(--text2); color: var(--text); transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #000; }
-.btn-secondary:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #000; }
-
-.btn-red {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
-  padding: 10px 16px;
-  background: var(--red2);
-  border: 2px solid var(--red);
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 3px 3px 0 #000;
-  transition: all 0.1s;
-  text-shadow: 1px 1px 0 #000;
-}
-
-.btn-red:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #000; }
-.btn-red:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #000; }
-
-.btn-gold {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
-  padding: 10px 16px;
-  background: #2a1f00;
-  border: 2px solid var(--gold);
-  color: var(--gold);
-  cursor: pointer;
-  box-shadow: 3px 3px 0 #000, 0 0 12px rgba(245,197,66,0.2);
-  transition: all 0.1s;
-  text-shadow: 1px 1px 0 #000;
-}
-
-.btn-gold:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #000, 0 0 18px rgba(245,197,66,0.3); }
-.btn-gold:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #000; }
-
-/* Difficulty selector */
-.diff-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  margin: 20px 0;
-}
-
-.diff-card {
-  padding: 14px 10px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: 2px solid var(--border);
-  background: var(--bg3);
-  box-shadow: 3px 3px 0 #000;
-}
-
-.diff-card:hover, .diff-card.selected {
-  border-color: var(--green);
-  background: var(--green3);
-  box-shadow: 4px 4px 0 #000, 0 0 15px rgba(90,181,82,0.2);
-  transform: translateY(-2px);
-}
-
-.diff-card .diff-icon { font-size: 22px; margin-bottom: 8px; display: block; }
-.diff-card .diff-name { font-size: 8px; color: var(--green); margin-bottom: 4px; }
-.diff-card .diff-desc { font-size: 6px; color: var(--text2); line-height: 1.8; }
-
-/* ===== GAME SCREEN ===== */
-.game-layout {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px;
-  align-items: start;
-}
-
-@media(max-width:768px) {
-  .game-layout { grid-template-columns: 1fr; }
-  .sidebar { order: 2; }
-  .main-panel { order: 1; }
-}
-
-/* Progress bar */
-.progress-area { margin-bottom: 20px; }
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 7px;
-  color: var(--text2);
-  margin-bottom: 8px;
-}
-
-.progress-bar {
-  height: 12px;
-  background: var(--bg3);
-  border: 2px solid var(--border);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--green3), var(--green));
-  transition: width 0.4s ease;
-  box-shadow: 0 0 8px rgba(90,181,82,0.5);
-  position: relative;
-}
-
-.progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 4px;
-  background: rgba(255,255,255,0.2);
-}
-
-/* Question card */
-.question-card { padding: 28px 24px; margin-bottom: 16px; }
-
-.q-number {
-  font-size: 7px;
-  color: var(--green);
-  margin-bottom: 12px;
-  text-shadow: 1px 1px 0 var(--green3);
-}
-
-.q-text {
-  font-size: clamp(9px, 2vw, 13px);
-  line-height: 2;
-  color: var(--text);
-  text-shadow: 1px 1px 0 #000;
-  margin-bottom: 28px;
-}
-
-.answer-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.btn-yes, .btn-no {
-  font-family: 'Press Start 2P', monospace;
-  font-size: 12px;
-  padding: 16px;
-  cursor: pointer;
-  transition: all 0.1s;
-  text-shadow: 1px 1px 0 #000;
-  letter-spacing: 1px;
-  border-radius: 2px;
-}
-
-.btn-yes {
-  background: var(--green3);
-  border: 3px solid var(--green);
-  color: #fff;
-  box-shadow: 4px 4px 0 #000, 0 0 12px rgba(90,181,82,0.2);
-}
-
-.btn-yes:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #000, 0 0 20px rgba(90,181,82,0.4); }
-.btn-yes:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
-
-.btn-no {
-  background: var(--red2);
-  border: 3px solid var(--red);
-  color: #fff;
-  box-shadow: 4px 4px 0 #000, 0 0 12px rgba(192,57,43,0.2);
-}
-
-.btn-no:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #000, 0 0 20px rgba(192,57,43,0.4); }
-.btn-no:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
-
-/* Answer history */
-.history-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  margin-bottom: 6px;
-  font-size: 6px;
-  color: var(--text2);
-  transition: all 0.3s;
-  animation: slideIn 0.2s ease;
-}
-
-@keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
-
-.history-row .ans-badge {
-  padding: 3px 7px;
-  font-size: 6px;
-  font-weight: bold;
-  min-width: 32px;
-  text-align: center;
-}
-
-.ans-yes { background: var(--green3); border: 1px solid var(--green); color: #fff; }
-.ans-no  { background: var(--red2); border: 1px solid var(--red); color: #fff; }
-
-/* Action buttons */
-.action-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-/* ===== SIDEBAR ===== */
-.sidebar-header {
-  font-size: 7px;
-  color: var(--gold);
-  text-shadow: 1px 1px 0 #000;
-  padding: 12px 14px;
-  background: #1a1500;
-  border-bottom: 2px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.mob-count-badge {
-  background: var(--green2);
-  border: 1px solid var(--green);
-  color: #fff;
-  padding: 3px 8px;
-  font-size: 7px;
-  text-shadow: 1px 1px 0 #000;
-}
-
-.mob-list {
-  max-height: 420px;
-  overflow-y: auto;
-  padding: 10px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--green3) var(--bg2);
-}
-
-.mob-list::-webkit-scrollbar { width: 6px; }
-.mob-list::-webkit-scrollbar-track { background: var(--bg2); }
-.mob-list::-webkit-scrollbar-thumb { background: var(--green3); }
-
-.mob-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  margin-bottom: 4px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  transition: all 0.2s;
-  cursor: default;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
-
-.mob-item:hover { border-color: var(--border2); background: #1e2d40; }
-.mob-item.top-pick { border-color: var(--gold); background: #1a1500; box-shadow: 0 0 8px rgba(245,197,66,0.2); }
-
-.mob-emoji { font-size: 16px; min-width: 22px; text-align: center; }
-.mob-name { font-size: 6px; color: var(--text); flex: 1; line-height: 1.5; }
-.mob-prob {
-  font-size: 6px;
-  padding: 2px 6px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text2);
-  min-width: 38px;
-  text-align: right;
-}
-.mob-prob.high { color: var(--gold); border-color: var(--gold2); }
-
-.top-crown { font-size: 9px; margin-right: 2px; }
-
-/* Filter removed items animation */
-.mob-item.removing {
-  animation: fadeOut 0.25s ease forwards;
-}
-
-@keyframes fadeOut {
-  to { opacity: 0; transform: scale(0.9); height: 0; margin: 0; padding: 0; }
-}
-
-/* ===== RESULT SCREEN ===== */
-.result-card {
-  padding: 40px 30px;
-  text-align: center;
-  margin: 20px 0;
-}
-
-.result-emoji { font-size: 72px; display: block; margin-bottom: 20px; animation: bounceIn 0.5s cubic-bezier(0.68,-0.55,0.265,1.55); }
-
-@keyframes bounceIn {
-  0% { transform: scale(0); }
-  60% { transform: scale(1.2); }
-  80% { transform: scale(0.95); }
-  100% { transform: scale(1); }
-}
-
-.result-label { font-size: 8px; color: var(--text2); margin-bottom: 12px; }
-.result-name {
-  font-size: clamp(16px, 4vw, 28px);
-  color: var(--green);
-  text-shadow: 2px 2px 0 var(--green3), 4px 4px 0 #000;
-  margin-bottom: 8px;
-  animation: glowPulse 2s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%,100% { text-shadow: 2px 2px 0 var(--green3), 4px 4px 0 #000, 0 0 10px rgba(90,181,82,0.3); }
-  50% { text-shadow: 2px 2px 0 var(--green3), 4px 4px 0 #000, 0 0 25px rgba(90,181,82,0.6); }
-}
-
-.result-dimension {
-  font-size: 7px;
-  color: var(--text2);
-  margin-bottom: 24px;
-}
-
-.stats-row {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
-}
-
-.stat-chip {
-  padding: 8px 14px;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  font-size: 6px;
-  color: var(--text2);
-}
-
-.stat-chip strong { display: block; font-size: 10px; color: var(--gold); margin-bottom: 4px; }
-
-/* candidates shown when >1 */
-.candidates-title { font-size: 8px; color: var(--text2); margin-bottom: 14px; }
-.candidates-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-  margin-bottom: 24px;
-}
-
-.cand-card {
-  padding: 12px 8px;
-  background: var(--bg3);
-  border: 2px solid var(--border);
-  text-align: center;
-  transition: all 0.2s;
-}
-.cand-card:first-child { border-color: var(--gold); box-shadow: 0 0 10px rgba(245,197,66,0.2); }
-.cand-card .cand-emoji { font-size: 24px; margin-bottom: 6px; display: block; }
-.cand-card .cand-name { font-size: 6px; color: var(--text); }
-.cand-card .cand-pct  { font-size: 6px; color: var(--gold); margin-top: 4px; }
-
-/* ===== CONFETTI ===== */
-.confetti-piece {
-  position: fixed;
-  width: 10px;
-  height: 10px;
-  top: -20px;
-  animation: confettiFall linear forwards;
-  z-index: 9999;
-  pointer-events: none;
-}
-
-@keyframes confettiFall {
-  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
-
-/* ===== FLASH OVERLAY ===== */
-.flash {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 8888;
-  opacity: 0;
-  transition: opacity 0.1s;
-}
-
-.flash.yes { background: radial-gradient(ellipse, rgba(90,181,82,0.25) 0%, transparent 70%); }
-.flash.no  { background: radial-gradient(ellipse, rgba(192,57,43,0.25) 0%, transparent 70%); }
-.flash.active { opacity: 1; animation: flashAnim 0.35s ease; }
-@keyframes flashAnim { 0%{opacity:0.8}100%{opacity:0} }
-
-/* ===== TOOLTIP ===== */
-.tooltip-wrap { position: relative; display: inline-block; }
-.tooltip-wrap .tip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%; transform: translateX(-50%);
-  background: #000;
-  border: 1px solid var(--border2);
-  color: var(--text);
-  font-size: 6px;
-  padding: 6px 10px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 100;
-}
-.tooltip-wrap:hover .tip { opacity: 1; }
-
-/* ===== UTILITY ===== */
-.hidden { display: none !important; }
-.text-center { text-align: center; }
-.mt-8 { margin-top: 8px; }
-.mt-16 { margin-top: 16px; }
-.mb-8 { margin-bottom: 8px; }
-.mb-16 { margin-bottom: 16px; }
-
-/* ===== NEXT Q HINT ===== */
-.hint-box {
-  padding: 10px 14px;
-  background: #0d1a2a;
-  border: 1px dashed var(--blue);
-  font-size: 6px;
-  color: #7ab8e8;
-  margin-top: 10px;
-  line-height: 2;
-}
-
-/* Animated dots */
-.dots::after {
-  content: '';
-  animation: dots 1.5s steps(4, end) infinite;
-}
-@keyframes dots {
-  0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} 100%{content:''}
-}
-
-/* RTL support */
-[dir="rtl"] .history-row { flex-direction: row-reverse; }
-[dir="rtl"] .mob-prob { text-align: left; }
-[dir="rtl"] .progress-label { flex-direction: row-reverse; }
+  :root {
+    --green: #4ade80;
+    --green-dark: #16a34a;
+    --green-dim: #166534;
+    --red: #f87171;
+    --red-dark: #991b1b;
+    --yellow: #facc15;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #16213e;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --pixel: 'Press Start 2P', monospace;
+    --vt: 'VT323', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--vt);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    background: var(--surface2);
+    border: 2px solid var(--green);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .header-icon { font-size: 36px; }
+
+  .header-title {
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--green);
+    line-height: 1.7;
+  }
+
+  .header-sub {
+    font-size: 20px;
+    color: #86efac;
+    margin-top: 2px;
+  }
+
+  .header-timer {
+    margin-left: auto;
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--yellow);
+    background: var(--bg);
+    border: 2px solid var(--yellow);
+    border-radius: 6px;
+    padding: 8px 12px;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* ── MAIN GAME AREA ── */
+  .game {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    gap: 14px;
+    min-height: 480px;
+  }
+
+  /* ── LEFT: MOB PANEL ── */
+  .mob-panel {
+    width: 210px;
+    flex-shrink: 0;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mob-panel-label {
+    font-family: var(--pixel);
+    font-size: 7px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    align-self: flex-start;
+  }
+
+  .mob-img-box {
+    width: 150px;
+    height: 150px;
+    border: 3px solid var(--green);
+    border-radius: 8px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    image-rendering: pixelated;
+    transition: border-color 0.3s;
+  }
+
+  .mob-img-box.guessing { border-color: var(--yellow); animation: pulse 0.8s ease infinite alternate; }
+  .mob-img-box.correct  { border-color: var(--green); }
+  .mob-img-box.wrong    { border-color: var(--red); }
+
+  @keyframes pulse { from { box-shadow: 0 0 0 0 rgba(250,204,21,0.4); } to { box-shadow: 0 0 0 8px rgba(250,204,21,0); } }
+
+  .mob-img-box img {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    transition: opacity 0.3s;
+  }
+
+  .mob-img-box .question-mark {
+    font-size: 80px;
+    color: var(--border);
+    font-family: var(--pixel);
+    line-height: 1;
+  }
+
+  .mob-name-display {
+    font-family: var(--pixel);
+    font-size: 8px;
+    color: var(--green);
+    text-align: center;
+    word-break: break-word;
+    line-height: 1.6;
+    min-height: 28px;
+  }
+
+  .mob-count-badge {
+    font-size: 16px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .possible-list-wrap {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .possible-item {
+    font-size: 15px;
+    color: #475569;
+    padding: 2px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+
+  .possible-item.highlight { color: var(--green); font-size: 16px; }
+
+  /* ── RIGHT: QUESTION PANEL ── */
+  .question-panel {
+    flex: 1;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--surface);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .progress-label {
+    font-family: var(--pixel);
+    font-size: 7px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .q-step {
+    font-family: var(--pixel);
+    font-size: 8px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .q-text {
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1.3;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: var(--pixel);
+    font-size: 9px;
+    padding: 12px 22px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.1s;
+    letter-spacing: 1px;
+  }
+
+  .btn:active { transform: scale(0.95); }
+
+  .btn-yes  { background: #14532d; color: #bbf7d0; border-color: var(--green); }
+  .btn-yes:hover  { background: var(--green-dark); }
+
+  .btn-no   { background: #450a0a; color: #fecaca; border-color: var(--red); }
+  .btn-no:hover   { background: var(--red-dark); }
+
+  .btn-guess { background: #1e3a5f; color: #bae6fd; border-color: #38bdf8; font-size: 8px; padding: 10px 16px; }
+  .btn-guess:hover { background: #1e40af; }
+
+  .btn-restart { background: transparent; color: var(--muted); border-color: var(--border); font-size: 8px; padding: 10px 14px; }
+  .btn-restart:hover { border-color: #64748b; color: var(--text); }
+
+  .history-box {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 150px;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+
+  .history-label {
+    font-family: var(--pixel);
+    font-size: 7px;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .history-item {
+    font-size: 16px;
+    color: #475569;
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .ans-y { color: var(--green); }
+  .ans-n { color: var(--red); }
+
+  /* ── GUESS SCREEN (replaces question area) ── */
+  .guess-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 18px;
+    text-align: center;
+  }
+
+  .guess-label {
+    font-family: var(--pixel);
+    font-size: 9px;
+    color: var(--yellow);
+    letter-spacing: 2px;
+    animation: blink 0.7s step-end infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .guess-mob-name {
+    font-family: var(--pixel);
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .guess-sub {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 320px;
+    line-height: 1.3;
+  }
+
+  .result-btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-correct {
+    background: #064e3b;
+    color: #a7f3d0;
+    border: 2px solid #34d399;
+    font-family: var(--pixel);
+    font-size: 8px;
+    padding: 12px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .btn-correct:hover { background: #065f46; }
+
+  .btn-wrong {
+    background: #4c0519;
+    color: #fecdd3;
+    border: 2px solid #fb7185;
+    font-family: var(--pixel);
+    font-size: 8px;
+    padding: 12px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .btn-wrong:hover { background: var(--red-dark); }
+
+  /* ── WIN / FAIL SCREENS ── */
+  .end-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 16px;
+    text-align: center;
+    animation: pop 0.4s ease;
+  }
+
+  @keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .end-title {
+    font-family: var(--pixel);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .end-title.win  { color: var(--green); }
+  .end-title.fail { color: var(--red); font-size: 12px; }
+
+  .end-score {
+    font-family: var(--pixel);
+    font-size: 9px;
+    color: var(--yellow);
+    background: var(--bg);
+    border: 2px solid var(--yellow);
+    border-radius: 6px;
+    padding: 10px 20px;
+    line-height: 1.8;
+  }
+
+  .end-mob-img {
+    width: 120px;
+    height: 120px;
+    border: 3px solid var(--green);
+    border-radius: 8px;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    image-rendering: pixelated;
+  }
+
+  .end-mob-img img { width: 100px; height: 100px; object-fit: contain; image-rendering: pixelated; }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 14px;
+    font-size: 16px;
+    color: #334155;
+    text-align: center;
+  }
+
+  .footer a { color: #475569; text-decoration: none; }
+  .footer a:hover { color: var(--green); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Responsive */
+  @media (max-width: 620px) {
+    .game { flex-direction: column; }
+    .mob-panel { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+    .mob-img-box { width: 110px; height: 110px; }
+    .possible-list-wrap { display: none; }
+  }
 </style>
 </head>
 <body>
 
-<div class="flash" id="flash"></div>
+<div class="header">
+  <div class="header-icon">⛏️</div>
+  <div>
+    <div class="header-title">MINECRAFT<br>MOB GUESSER</div>
+    <div class="header-sub">Think of a mob — I'll guess it!</div>
+  </div>
+  <div class="header-timer" id="timer">00:00</div>
+</div>
 
-<div class="container">
+<div class="game" id="game">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo-area">
-      <div class="logo-icon">⛏️</div>
-      <div>
-        <div class="game-title" id="headerTitle">MINECRAFT<br>MOB GUESSER</div>
-        <div class="subtitle" id="headerSub">BEAT YOUR FRIEND · GUESS FASTER</div>
-      </div>
+  <!-- LEFT: mob identity panel -->
+  <div class="mob-panel" id="mob-panel">
+    <div class="mob-panel-label">MY BEST GUESS</div>
+    <div class="mob-img-box" id="mob-img-box">
+      <span class="question-mark">?</span>
     </div>
+    <div class="mob-name-display" id="mob-name-display">???</div>
+    <div class="mob-count-badge" id="mob-count"></div>
+    <div class="possible-list-wrap" id="possible-list"></div>
   </div>
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <button class="lang-btn" id="langBtn" onclick="toggleLang()">🌍 العربية</button>
-    <div class="timer-display hidden" id="timerDisplay">⏱ 00:00</div>
-    <button class="btn-secondary" id="restartBtnTop" onclick="restartGame()" style="display:none" id="topRestartBtn">↺ <span data-t="restart">RESTART</span></button>
-  </div>
+  <!-- RIGHT: question panel -->
+  <div class="question-panel" id="question-panel">
 
-  <!-- ===== INTRO SCREEN ===== -->
-  <div class="screen active" id="screenIntro">
-    <div class="pbox intro-card">
-      <span class="intro-icon">🎮</span>
-      <div class="intro-title" id="introTitle">THINK OF A MOB...</div>
-      <div class="intro-desc" id="introDesc">
-        Ask your friend to think of any Minecraft mob.<br>
-        Answer YES or NO to each question.<br>
-        I'll guess it before you finish!
-      </div>
-
-      <div style="margin-bottom:24px">
-        <div style="font-size:7px;color:var(--text2);margin-bottom:12px" id="diffLabel">SELECT DIFFICULTY:</div>
-        <div class="diff-grid">
-          <div class="diff-card selected" id="diff-easy" onclick="selectDiff('easy')">
-            <span class="diff-icon">🌿</span>
-            <div class="diff-name" id="dname-easy">EASY</div>
-            <div class="diff-desc" id="ddesc-easy">~40 Common<br>mobs only</div>
-          </div>
-          <div class="diff-card" id="diff-normal" onclick="selectDiff('normal')">
-            <span class="diff-icon">⚔️</span>
-            <div class="diff-name" id="dname-normal">NORMAL</div>
-            <div class="diff-desc" id="ddesc-normal">~65 Most<br>mobs included</div>
-          </div>
-          <div class="diff-card" id="diff-hard" onclick="selectDiff('hard')">
-            <span class="diff-icon">💀</span>
-            <div class="diff-name" id="dname-hard">HARD</div>
-            <div class="diff-desc" id="ddesc-hard">80+ All mobs<br>including rare</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <button class="btn-primary" onclick="startGame()" id="btnStart">▶ START GAME</button>
-      </div>
-
-      <div style="margin-top:20px;font-size:6px;color:var(--text3)" id="introTip">
-        TIP: Have your friend pick the mob secretly, then you answer the questions!
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== GAME SCREEN ===== -->
-  <div class="screen" id="screenGame">
-    <div class="progress-area">
-      <div class="progress-label">
-        <span id="progressLabel">STEP 1 / 7</span>
-        <span id="progressRight">NARROWING DOWN...</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <span class="progress-label" id="prog-label">STEP 0</span>
     </div>
 
-    <div class="game-layout">
-      <!-- MAIN PANEL -->
-      <div class="main-panel">
-        <div class="pbox question-card" id="questionCard">
-          <div class="q-number" id="qNumber">QUESTION 1:</div>
-          <div class="q-text" id="qText">Is it a hostile mob?</div>
-          <div class="answer-row">
-            <button class="btn-yes" onclick="answer(true)" id="btnYes">✔ YES</button>
-            <button class="btn-no"  onclick="answer(false)" id="btnNo">✘ NO</button>
-          </div>
-        </div>
+    <div class="q-step" id="q-step">QUESTION 1 — NARROWING DOWN...</div>
+    <div class="q-text" id="q-text">Loading...</div>
 
-        <div class="hint-box hidden" id="hintBox">
-          <span id="hintText"></span>
-        </div>
-
-        <div class="action-row mt-8">
-          <button class="btn-gold" onclick="bestGuessNow()" id="btnBestGuess">⚡ BEST GUESS NOW</button>
-          <button class="btn-red" onclick="restartGame()">↺ <span data-t="restart">RESTART</span></button>
-        </div>
-
-        <!-- Answer History -->
-        <div style="margin-top:16px">
-          <div style="font-size:6px;color:var(--text3);margin-bottom:8px" id="historyLabel">ANSWER HISTORY:</div>
-          <div id="historyList"></div>
-        </div>
-      </div>
-
-      <!-- SIDEBAR -->
-      <div class="sidebar">
-        <div class="pbox" style="overflow:hidden">
-          <div class="sidebar-header">
-            <span id="sidebarTitle">🔍 POSSIBLE MOBS</span>
-            <span class="mob-count-badge" id="mobCountBadge">80</span>
-          </div>
-          <div class="mob-list" id="mobList"></div>
-        </div>
-      </div>
+    <div class="btn-row" id="btn-row">
+      <button class="btn btn-yes"  id="btn-yes"  onclick="answer(true)">✔ YES</button>
+      <button class="btn btn-no"   id="btn-no"   onclick="answer(false)">✘ NO</button>
+      <button class="btn btn-guess" onclick="forceGuess()">⚡ GUESS NOW</button>
+      <button class="btn btn-restart" onclick="restart()">↺ RESTART</button>
     </div>
-  </div>
 
-  <!-- ===== RESULT SCREEN ===== -->
-  <div class="screen" id="screenResult">
-    <div class="pbox result-card" id="resultCard">
-      <!-- filled by JS -->
+    <div class="history-box" id="history-box">
+      <div class="history-label">ANSWER HISTORY</div>
     </div>
-  </div>
 
+  </div>
+</div>
+
+<div class="footer">
+  Data &amp; images from <a href="https://minecraft.wiki/w/Mob" target="_blank">minecraft.wiki</a> &nbsp;·&nbsp;
+  <a href="https://github.com/banzoxog/minecraft-gusser" target="_blank">View on GitHub</a>
 </div>
 
 <script>
-// ============================================================
-//  MOB DATABASE
-// ============================================================
-// Fields:
-//  id, en (english name), ar (arabic name), emoji, 
-//  type: 'passive'|'neutral'|'hostile'|'boss'|'utility'
-//  dim: array of 'overworld'|'nether'|'end'
-//  fly: bool, humanoid: bool, big: bool,
-//  tamable: bool (can be tamed OR is passive/friendly)
-//  rare: bool (drops unique/rare items)
-//  difficulty: 'easy'|'normal'|'hard'
-
-const ALL_MOBS = [
-  // ──── PASSIVE - OVERWORLD ────────────────────────────────
-  { id:'cow',        en:'Cow',           ar:'بقرة',           emoji:'🐄', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'sheep',      en:'Sheep',         ar:'خروف',           emoji:'🐑', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'pig',        en:'Pig',           ar:'خنزير',          emoji:'🐷', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'chicken',    en:'Chicken',       ar:'دجاجة',          emoji:'🐔', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'rabbit',     en:'Rabbit',        ar:'أرنب',           emoji:'🐰', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:true,  diff:'easy' },
-  { id:'mooshroom',  en:'Mooshroom',     ar:'مشروم باقرة',    emoji:'🍄', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:true,  diff:'normal' },
-  { id:'bat',        en:'Bat',           ar:'خفاش',           emoji:'🦇', type:'passive', dim:['overworld'], fly:true,  humanoid:false, big:false, tamable:false,rare:false, diff:'easy' },
-  { id:'squid',      en:'Squid',         ar:'حبار',           emoji:'🦑', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'easy' },
-  { id:'glowsquid',  en:'Glow Squid',    ar:'حبار متوهج',     emoji:'✨', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'turtle',     en:'Turtle',        ar:'سلحفاة',         emoji:'🐢', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'axolotl',    en:'Axolotl',       ar:'أكسولوتل',       emoji:'🦎', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:true,  diff:'normal' },
-  { id:'allay',      en:'Allay',         ar:'ألاي',           emoji:'🧚', type:'passive', dim:['overworld'], fly:true,  humanoid:false, big:false, tamable:true, rare:true,  diff:'normal' },
-  { id:'fox',        en:'Fox',           ar:'ثعلب',           emoji:'🦊', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'easy' },
-  { id:'frog',       en:'Frog',          ar:'ضفدع',           emoji:'🐸', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'tadpole',    en:'Tadpole',       ar:'شرغوف',          emoji:'🐟', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'hard' },
-  { id:'sniffer',    en:'Sniffer',       ar:'شمّام',          emoji:'🦕', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:false,rare:true,  diff:'hard' },
-  { id:'camel',      en:'Camel',         ar:'جمل',            emoji:'🐪', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:true, rare:false, diff:'normal' },
-  { id:'villager',   en:'Villager',      ar:'قروي',           emoji:'👨', type:'passive', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'wanderer',   en:'Wandering Trader',ar:'تاجر متجول',  emoji:'🧙', type:'passive', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:false, diff:'normal' },
-  { id:'cat',        en:'Cat',           ar:'قطة',            emoji:'🐱', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'ocelot',     en:'Ocelot',        ar:'أوسيلوت',        emoji:'🐆', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'normal' },
-  { id:'parrot',     en:'Parrot',        ar:'ببغاء',          emoji:'🦜', type:'passive', dim:['overworld'], fly:true,  humanoid:false, big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'cod',        en:'Cod',           ar:'سمكة كود',       emoji:'🐟', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'hard' },
-  { id:'salmon',     en:'Salmon',        ar:'سمك السلمون',    emoji:'🐡', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'hard' },
-  { id:'tropicalfish',en:'Tropical Fish',ar:'سمكة استوائية', emoji:'🐠', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'normal' },
-  { id:'pufferfish', en:'Pufferfish',    ar:'سمكة منتفخة',   emoji:'🐡', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'armadillo',  en:'Armadillo',     ar:'أرمادلو',        emoji:'🦔', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'hard' },
-  { id:'horse',      en:'Horse',         ar:'حصان',           emoji:'🐴', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:true, rare:false, diff:'easy' },
-  { id:'donkey',     en:'Donkey',        ar:'حمار',           emoji:'🫏', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'normal' },
-  { id:'mule',       en:'Mule',          ar:'بغل',            emoji:'🐴', type:'passive', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'hard' },
-  { id:'snowgolem',  en:'Snow Golem',    ar:'رجل ثلج',        emoji:'⛄', type:'utility', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:true, rare:false, diff:'normal' },
-
-  // ──── NEUTRAL - OVERWORLD ────────────────────────────────
-  { id:'wolf',       en:'Wolf',          ar:'ذئب',            emoji:'🐺', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'easy' },
-  { id:'bee',        en:'Bee',           ar:'نحلة',           emoji:'🐝', type:'neutral', dim:['overworld'], fly:true,  humanoid:false, big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'dolphin',    en:'Dolphin',       ar:'دلفين',          emoji:'🐬', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'normal' },
-  { id:'polarbear',  en:'Polar Bear',    ar:'دب قطبي',        emoji:'🐻', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:false,rare:false, diff:'normal' },
-  { id:'llama',      en:'Llama',         ar:'لاما',           emoji:'🦙', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:true, rare:false, diff:'normal' },
-  { id:'panda',      en:'Panda',         ar:'باندا',          emoji:'🐼', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:false,rare:false, diff:'normal' },
-  { id:'goat',       en:'Goat',          ar:'ماعز',           emoji:'🐐', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'irongolem',  en:'Iron Golem',    ar:'ترس حديدي',      emoji:'🤖', type:'utility', dim:['overworld'], fly:false, humanoid:true,  big:true,  tamable:true, rare:true,  diff:'easy' },
-  { id:'enderman',   en:'Enderman',      ar:'إندرمان',        emoji:'🖤', type:'neutral', dim:['overworld','nether','end'], fly:false, humanoid:true,  big:true,  tamable:false,rare:true,  diff:'easy' },
-  { id:'spider',     en:'Spider',        ar:'عنكبوت',         emoji:'🕷️', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'cavespider', en:'Cave Spider',   ar:'عنكبوت الكهف',   emoji:'🕸️', type:'neutral', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'normal' },
-  { id:'piglin',     en:'Piglin',        ar:'بيغلن',          emoji:'🐽', type:'neutral', dim:['nether'],    fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'zpiglin',    en:'Zombified Piglin',ar:'بيغلن متزمبي', emoji:'💀', type:'neutral', dim:['overworld','nether'], fly:false, humanoid:true, big:false, tamable:false, rare:true, diff:'normal' },
-  { id:'strider',    en:'Strider',       ar:'خاطف اللهب',     emoji:'🦩', type:'passive', dim:['nether'],    fly:false, humanoid:false, big:false, tamable:true, rare:false, diff:'normal' },
-
-  // ──── HOSTILE - OVERWORLD ────────────────────────────────
-  { id:'zombie',     en:'Zombie',        ar:'زومبي',          emoji:'🧟', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:false, diff:'easy' },
-  { id:'skeleton',   en:'Skeleton',      ar:'هيكل عظمي',      emoji:'💀', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'creeper',    en:'Creeper',       ar:'كريبر',          emoji:'💚', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'witch',      en:'Witch',         ar:'ساحرة',          emoji:'🧙‍♀️',type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'phantom',    en:'Phantom',       ar:'شبح',            emoji:'👻', type:'hostile', dim:['overworld'], fly:true,  humanoid:false, big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'drowned',    en:'Drowned',       ar:'الغريق',         emoji:'🌊', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'husk',       en:'Husk',          ar:'هاسك',           emoji:'☀️', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:false, diff:'easy' },
-  { id:'stray',      en:'Stray',         ar:'سترايه',         emoji:'❄️', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'pillager',   en:'Pillager',      ar:'ناهب',           emoji:'🏹', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'ravager',    en:'Ravager',       ar:'مدمر',           emoji:'🦏', type:'hostile', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:false,rare:true,  diff:'normal' },
-  { id:'vex',        en:'Vex',           ar:'فيكس',           emoji:'👿', type:'hostile', dim:['overworld'], fly:true,  humanoid:true,  big:false, tamable:false,rare:false, diff:'normal' },
-  { id:'evoker',     en:'Evoker',        ar:'إيفوكر',         emoji:'🧝', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'vindicator', en:'Vindicator',    ar:'فيندكايتر',      emoji:'🪓', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'guardian',   en:'Guardian',      ar:'حارس',           emoji:'🔱', type:'hostile', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'elderguard', en:'Elder Guardian',ar:'حارس قديم',      emoji:'👁️', type:'hostile', dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:false,rare:true,  diff:'normal' },
-  { id:'silverfish', en:'Silverfish',    ar:'فضية السمكة',    emoji:'🐛', type:'hostile', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'normal' },
-  { id:'endermite',  en:'Endermite',     ar:'إندرمايت',       emoji:'🪲', type:'hostile', dim:['overworld','end'], fly:false, humanoid:false, big:false, tamable:false, rare:false, diff:'hard' },
-  { id:'slime',      en:'Slime',         ar:'وحل',            emoji:'🟢', type:'hostile', dim:['overworld'], fly:false, humanoid:false, big:false, tamable:false,rare:false, diff:'easy' },
-  { id:'warden',     en:'Warden',        ar:'الحارس',         emoji:'🔊', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:true,  tamable:false,rare:true,  diff:'normal' },
-  { id:'bogged',     en:'Bogged',        ar:'بوغد',           emoji:'🍄', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'hard' },
-  { id:'breeze',     en:'Breeze',        ar:'بريز',           emoji:'🌬️', type:'hostile', dim:['overworld'], fly:true,  humanoid:true,  big:false, tamable:false,rare:true,  diff:'hard' },
-  { id:'zombie_villager',en:'Zombie Villager',ar:'قروي زومبي',emoji:'🧟', type:'hostile', dim:['overworld'], fly:false, humanoid:true, big:false, tamable:false, rare:false, diff:'hard' },
-  { id:'illusioner', en:'Illusioner',    ar:'المضلل',         emoji:'🎭', type:'hostile', dim:['overworld'], fly:false, humanoid:true,  big:false, tamable:false,rare:false, diff:'hard' },
-  { id:'zoglin',     en:'Zoglin',        ar:'زوغلن',          emoji:'🐗', type:'hostile', dim:['overworld','nether'], fly:false, humanoid:false, big:true, tamable:false, rare:false, diff:'hard' },
-
-  // ──── HOSTILE - NETHER ───────────────────────────────────
-  { id:'blaze',      en:'Blaze',         ar:'بليز',           emoji:'🔥', type:'hostile', dim:['nether'],    fly:true,  humanoid:true,  big:false, tamable:false,rare:true,  diff:'easy' },
-  { id:'ghast',      en:'Ghast',         ar:'جاست',           emoji:'👻', type:'hostile', dim:['nether'],    fly:true,  humanoid:false, big:true,  tamable:false,rare:true,  diff:'easy' },
-  { id:'withskel',   en:'Wither Skeleton',ar:'هيكل الويذر',   emoji:'⚫', type:'hostile', dim:['nether'],    fly:false, humanoid:true,  big:true,  tamable:false,rare:true,  diff:'easy' },
-  { id:'hoglin',     en:'Hoglin',        ar:'هوغلن',          emoji:'🐗', type:'hostile', dim:['nether'],    fly:false, humanoid:false, big:true,  tamable:false,rare:true,  diff:'normal' },
-  { id:'piglinbrute',en:'Piglin Brute',  ar:'بيغلن الفظ',     emoji:'👹', type:'hostile', dim:['nether'],    fly:false, humanoid:true,  big:false, tamable:false,rare:true,  diff:'normal' },
-  { id:'magmacube',  en:'Magma Cube',    ar:'مكعب الحمم',     emoji:'🌋', type:'hostile', dim:['nether'],    fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'normal' },
-
-  // ──── HOSTILE - END ──────────────────────────────────────
-  { id:'shulker',    en:'Shulker',       ar:'شلكر',           emoji:'🟪', type:'hostile', dim:['end'],       fly:false, humanoid:false, big:false, tamable:false,rare:true,  diff:'normal' },
-
-  // ──── BOSSES ─────────────────────────────────────────────
-  { id:'dragon',     en:'Ender Dragon',  ar:'تنين الإند',     emoji:'🐉', type:'boss',    dim:['end'],       fly:true,  humanoid:false, big:true,  tamable:false,rare:true,  diff:'easy' },
-  { id:'wither',     en:'Wither',        ar:'ويذر',           emoji:'💀', type:'boss',    dim:['overworld','nether'], fly:true, humanoid:false, big:true, tamable:false, rare:true, diff:'easy' },
-  { id:'elderguardian2', en:'Elder Guardian',ar:'الحارس القديم',emoji:'👁️',type:'boss',  dim:['overworld'], fly:false, humanoid:false, big:true,  tamable:false,rare:true,  diff:'normal' },
+// ─────────────────────────────────────────
+//  MOB DATA  (name, wiki image slug, attrs)
+// ─────────────────────────────────────────
+// Image URL pattern: https://minecraft.wiki/images/{slug}
+const MOBS = [
+  // HOSTILE – OVERWORLD
+  { name:"Creeper",          img:"Creeper_JE4.png",               hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:true  },
+  { name:"Zombie",           img:"Zombie_JE3_BE2.png",            hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:true  },
+  { name:"Skeleton",         img:"Skeleton_JE6.png",              hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:true  },
+  { name:"Spider",           img:"Spider_JE4_BE3.png",            hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:true,  illager:false, humanoid:false, size:"medium", spawner:true  },
+  { name:"Cave Spider",      img:"Cave_Spider_JE4_BE3.png",       hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:true,  illager:false, humanoid:false, size:"small",  spawner:true  },
+  { name:"Enderman",         img:"Enderman_JE5_BE3.png",          hostile:false, passive:false, neutral:true,  nether:false, end:true,  aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"large",  spawner:false },
+  { name:"Witch",            img:"Witch_JE2_BE2.png",             hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Slime",            img:"Slime_JE3_BE3.png",             hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Phantom",          img:"Phantom_JE3_BE2.png",           hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:true,  boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Silverfish",       img:"Silverfish_JE4_BE3.png",        hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:true,  illager:false, humanoid:false, size:"small",  spawner:true  },
+  { name:"Endermite",        img:"Endermite_JE2_BE2.png",         hostile:true,  passive:false, neutral:false, nether:false, end:true,  aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:true,  illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Drowned",          img:"Drowned_JE2_BE2.png",           hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:true,  undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Husk",             img:"Husk_JE3_BE3.png",              hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Stray",            img:"Stray_JE2_BE2.png",             hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Bogged",           img:"Bogged_JE1_BE1.png",            hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Zombie Villager",  img:"Zombie_Villager_JE3_BE2.png",   hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Creaking",         img:"Creaking_JE1.png",              hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"large",  spawner:false },
+  // HOSTILE – NETHER
+  { name:"Blaze",            img:"Blaze_JE2_BE2.png",             hostile:true,  passive:false, neutral:false, nether:true,  end:false, aquatic:false, undead:false, flying:true,  boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"medium", spawner:true  },
+  { name:"Ghast",            img:"Ghast_JE3.png",                 hostile:true,  passive:false, neutral:false, nether:true,  end:false, aquatic:false, undead:false, flying:true,  boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Wither Skeleton",  img:"Wither_Skeleton_JE3.png",       hostile:true,  passive:false, neutral:false, nether:true,  end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"large",  spawner:true  },
+  { name:"Magma Cube",       img:"Magma_Cube_JE2_BE2.png",        hostile:true,  passive:false, neutral:false, nether:true,  end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"medium", spawner:true  },
+  { name:"Piglin Brute",     img:"Piglin_Brute_JE2_BE2.png",      hostile:true,  passive:false, neutral:false, nether:true,  end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Hoglin",           img:"Hoglin_JE2_BE2.png",            hostile:false, passive:false, neutral:false, nether:true,  end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Zoglin",           img:"Zoglin_JE1_BE1.png",            hostile:true,  passive:false, neutral:false, nether:true,  end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  // NEUTRAL
+  { name:"Piglin",           img:"Piglin_JE3_BE3.png",            hostile:false, passive:false, neutral:true,  nether:true,  end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Zombified Piglin", img:"Zombified_Piglin_JE4_BE3.png",  hostile:false, passive:false, neutral:true,  nether:true,  end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Wolf",             img:"Wolf_JE3_BE3.png",              hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:true,  rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Polar Bear",       img:"Polar_Bear_JE3_BE3.png",        hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Bee",              img:"Bee_JE3_BE3.png",               hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:true,  boss:false, tameable:false, rideable:false, animal:true,  arthropod:true,  illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Goat",             img:"Goat_JE2_BE2.png",              hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Panda",            img:"Panda_JE2_BE2.png",             hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Llama",            img:"Llama_JE4_BE3.png",             hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:true,  rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Dolphin",          img:"Dolphin_JE2_BE2.png",           hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Iron Golem",       img:"Iron_Golem_JE4_BE2.png",        hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"large",  spawner:false },
+  // ILLAGERS
+  { name:"Vindicator",       img:"Vindicator_JE4_BE3.png",        hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:true,  humanoid:true,  size:"medium", spawner:false },
+  { name:"Evoker",           img:"Evoker_JE4_BE3.png",            hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:true,  humanoid:true,  size:"medium", spawner:false },
+  { name:"Pillager",         img:"Pillager_JE3_BE3.png",          hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:true,  humanoid:true,  size:"medium", spawner:false },
+  { name:"Ravager",          img:"Ravager_JE1_BE1.png",           hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:true,  humanoid:false, size:"large",  spawner:false },
+  { name:"Illusioner",       img:"Illusioner_JE2.png",            hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:true,  humanoid:true,  size:"medium", spawner:false },
+  // END
+  { name:"Shulker",          img:"Shulker_JE3.png",               hostile:true,  passive:false, neutral:false, nether:false, end:true,  aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  // BOSSES
+  { name:"Ender Dragon",     img:"Ender_Dragon_JE3.png",          hostile:true,  passive:false, neutral:false, nether:false, end:true,  aquatic:false, undead:false, flying:true,  boss:true,  tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Wither",           img:"Wither_JE3_BE3.png",            hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:true,  flying:true,  boss:true,  tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Elder Guardian",   img:"Elder_Guardian_JE2_BE2.png",    hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:true,  tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Warden",           img:"Warden_JE1_BE1.png",            hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:true,  tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"large",  spawner:false },
+  // PASSIVE / ANIMALS
+  { name:"Cow",              img:"Cow_JE4_BE3.png",               hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Pig",              img:"Pig_JE4_BE3.png",               hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:true,  animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Sheep",            img:"Sheep_JE4_BE3.png",             hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Chicken",          img:"Chicken_JE4_BE3.png",           hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Cat",              img:"Cat_JE1_BE1.png",               hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:true,  rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Ocelot",           img:"Ocelot_JE3_BE3.png",            hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Horse",            img:"Horse_(Pale)_JE1_BE1.png",      hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:true,  rideable:true,  animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Donkey",           img:"Donkey_JE3_BE3.png",            hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:true,  rideable:true,  animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Mule",             img:"Mule_JE3_BE3.png",              hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:true,  rideable:true,  animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Rabbit",           img:"Rabbit_JE4_BE3.png",            hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Fox",              img:"Fox_JE3_BE3.png",               hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Bat",              img:"Bat_JE4_BE2.png",               hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:true,  boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Parrot",           img:"Parrot_JE3_BE3.png",            hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:true,  boss:false, tameable:true,  rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Mooshroom",        img:"Mooshroom_JE4_BE3.png",         hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Snow Golem",       img:"Snow_Golem_JE4_BE2.png",        hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Villager",         img:"Villager_JE4_BE3.png",          hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Wandering Trader", img:"Wandering_Trader_JE2_BE2.png",  hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
+  { name:"Allay",            img:"Allay_JE2_BE2.png",             hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:true,  boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Frog",             img:"Frog_JE2_BE2.png",              hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Tadpole",          img:"Tadpole_JE2_BE2.png",           hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Sniffer",          img:"Sniffer_JE1_BE1.png",           hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Camel",            img:"Camel_JE1_BE1.png",             hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:true,  rideable:true,  animal:true,  arthropod:false, illager:false, humanoid:false, size:"large",  spawner:false },
+  { name:"Armadillo",        img:"Armadillo_JE2_BE2.png",         hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  // AQUATIC
+  { name:"Squid",            img:"Squid_JE3_BE3.png",             hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Glow Squid",       img:"Glow_Squid_JE2_BE2.png",        hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Axolotl",          img:"Axolotl_(lucy)_JE2_BE2.png",    hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:true,  rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Guardian",         img:"Guardian_JE3_BE3.png",           hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Cod",              img:"Cod_JE2_BE2.png",               hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Salmon",           img:"Salmon_JE3_BE3.png",            hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Tropical Fish",    img:"Tropical_Fish_(Clownfish)_JE3_BE3.png", hostile:false, passive:true, neutral:false, nether:false, end:false, aquatic:true, undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true, arthropod:false, illager:false, humanoid:false, size:"small", spawner:false },
+  { name:"Pufferfish",       img:"Pufferfish_JE3_BE2.png",        hostile:false, passive:false, neutral:true,  nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"small",  spawner:false },
+  { name:"Turtle",           img:"Turtle_JE3_BE3.png",            hostile:false, passive:true,  neutral:false, nether:false, end:false, aquatic:true,  undead:false, flying:false, boss:false, tameable:false, rideable:false, animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  // SPECIAL / MISC
+  { name:"Vex",              img:"Vex_JE2_BE2.png",               hostile:true,  passive:false, neutral:false, nether:false, end:false, aquatic:false, undead:false, flying:true,  boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"small",  spawner:false },
+  { name:"Strider",          img:"Strider_JE3_BE3.png",           hostile:false, passive:true,  neutral:false, nether:true,  end:false, aquatic:false, undead:false, flying:false, boss:false, tameable:false, rideable:true,  animal:true,  arthropod:false, illager:false, humanoid:false, size:"medium", spawner:false },
+  { name:"Zombified Piglin", img:"Zombified_Piglin_JE4_BE3.png",  hostile:false, passive:false, neutral:true,  nether:true,  end:false, aquatic:false, undead:true,  flying:false, boss:false, tameable:false, rideable:false, animal:false, arthropod:false, illager:false, humanoid:true,  size:"medium", spawner:false },
 ];
 
-// Remove duplicate elder guardian (keep one in hostile, label other as boss)
-// Actually keep both by removing one:
-// We'll deduplicate by id on init
+// Remove duplicate mobs by name
+const seen = new Set();
+const MOBS_CLEAN = MOBS.filter(m => { if (seen.has(m.name)) return false; seen.add(m.name); return true; });
 
-// ============================================================
-//  QUESTIONS DATABASE
-// ============================================================
+const IMG_BASE = "https://minecraft.wiki/images/";
+
+// ─────────────────────────────────────────
+//  QUESTION BANK
+// ─────────────────────────────────────────
+// Each question: { text, key, val }
+// key = mob property, val = expected value for YES
+// If all remaining mobs have the same value → question is skipped automatically
 const QUESTIONS = [
-  {
-    id: 'hostile',
-    en: 'Is it a HOSTILE mob? (attacks players on sight)',
-    ar: 'هل هو كيان عدائي؟ (يهاجم اللاعبين فور رؤيتهم)',
-    filter: (mob, ans) => {
-      if (ans) return mob.type === 'hostile' || mob.type === 'boss';
-      return mob.type !== 'hostile' && mob.type !== 'boss';
-    }
-  },
-  {
-    id: 'overworld',
-    en: 'Does it naturally spawn in the OVERWORLD?',
-    ar: 'هل يتواجد بشكل طبيعي في عالم العادي (Overworld)؟',
-    filter: (mob, ans) => {
-      if (ans) return mob.dim.includes('overworld');
-      return !mob.dim.includes('overworld');
-    }
-  },
-  {
-    id: 'fly',
-    en: 'Can it FLY or float through the air?',
-    ar: 'هل يستطيع الطيران أو التحليق في الهواء؟',
-    filter: (mob, ans) => mob.fly === ans
-  },
-  {
-    id: 'humanoid',
-    en: 'Is it HUMANOID? (stands upright on 2 legs like a player)',
-    ar: 'هل شكله بشري؟ (يقف على قدمين مثل اللاعب)',
-    filter: (mob, ans) => mob.humanoid === ans
-  },
-  {
-    id: 'big',
-    en: 'Is it BIGGER than a player in size?',
-    ar: 'هل هو أكبر حجماً من اللاعب؟',
-    filter: (mob, ans) => mob.big === ans
-  },
-  {
-    id: 'tamable',
-    en: 'Can it be TAMED or is it friendly by default?',
-    ar: 'هل يمكن ترويضه؟ أو هل هو ودود بطبيعته؟',
-    filter: (mob, ans) => mob.tamable === ans
-  },
-  {
-    id: 'rare',
-    en: 'Does it drop something UNIQUE or RARE?',
-    ar: 'هل يسقط شيئاً نادراً أو فريداً؟',
-    filter: (mob, ans) => mob.rare === ans
-  },
+  { text: "Is it a hostile mob (attacks you on sight)?",   key: "hostile",    val: true  },
+  { text: "Is it a passive mob (never attacks)?",          key: "passive",    val: true  },
+  { text: "Does it live in the Nether?",                   key: "nether",     val: true  },
+  { text: "Does it live in The End?",                      key: "end",        val: true  },
+  { text: "Is it an aquatic/water mob?",                   key: "aquatic",    val: true  },
+  { text: "Is it undead (zombie, skeleton, etc.)?",        key: "undead",     val: true  },
+  { text: "Can it fly?",                                   key: "flying",     val: true  },
+  { text: "Is it a boss mob?",                             key: "boss",       val: true  },
+  { text: "Is it an animal (real-life animal basis)?",     key: "animal",     val: true  },
+  { text: "Is it a humanoid (walks upright like a person)?", key: "humanoid", val: true  },
+  { text: "Is it tameable or domesticated?",               key: "tameable",   val: true  },
+  { text: "Can you ride it?",                              key: "rideable",   val: true  },
+  { text: "Is it a neutral mob (only attacks if provoked)?", key: "neutral",  val: true  },
+  { text: "Is it an arthropod (spider, bee, silverfish…)?", key: "arthropod", val: true  },
+  { text: "Is it an illager (vindicator, evoker, pillager…)?", key: "illager",val: true  },
+  { text: "Is it small in size (smaller than a player)?",  key: "size",       val: "small" },
+  { text: "Is it large in size (bigger than a player)?",   key: "size",       val: "large" },
+  { text: "Does it spawn from a spawner block?",           key: "spawner",    val: true  },
 ];
 
-// Additional questions for after main 7
-const EXTRA_QUESTIONS = [
-  {
-    id: 'nether',
-    en: 'Does it spawn in the NETHER?',
-    ar: 'هل يتواجد في عالم الجحيم (Nether)؟',
-    filter: (mob, ans) => {
-      if (ans) return mob.dim.includes('nether');
-      return !mob.dim.includes('nether');
-    }
-  },
-  {
-    id: 'end',
-    en: 'Does it spawn in THE END?',
-    ar: 'هل يتواجد في عالم النهاية (The End)؟',
-    filter: (mob, ans) => {
-      if (ans) return mob.dim.includes('end');
-      return !mob.dim.includes('end');
-    }
-  },
-  {
-    id: 'boss2',
-    en: 'Is it a BOSS mob? (special health bar)',
-    ar: 'هل هو كيان بوس؟ (له شريط صحة خاص)',
-    filter: (mob, ans) => {
-      if (ans) return mob.type === 'boss';
-      return mob.type !== 'boss';
-    }
-  },
-];
-
-// ============================================================
-//  TRANSLATIONS
-// ============================================================
-const T = {
-  en: {
-    headerTitle: 'MINECRAFT\nMOB GUESSER',
-    headerSub: 'BEAT YOUR FRIEND · GUESS FASTER',
-    introTitle: 'THINK OF A MOB...',
-    introDesc: 'Ask your friend to think of any Minecraft mob.\nAnswer YES or NO to each question.\nI\'ll guess it before you finish!',
-    diffLabel: 'SELECT DIFFICULTY:',
-    'dname-easy': 'EASY', 'ddesc-easy': '~40 Common\nmobs only',
-    'dname-normal': 'NORMAL', 'ddesc-normal': '~65 Most\nmobs included',
-    'dname-hard': 'HARD', 'ddesc-hard': '80+ All mobs\nincluding rare',
-    btnStart: '▶ START GAME',
-    introTip: 'TIP: Have your friend pick the mob secretly, then you answer the questions!',
-    progressRight: 'NARROWING DOWN...',
-    sidebarTitle: '🔍 POSSIBLE MOBS',
-    historyLabel: 'ANSWER HISTORY:',
-    btnBestGuess: '⚡ BEST GUESS NOW',
-    restart: 'RESTART',
-    resultGuessing: 'I\'M THINKING',
-    resultIs: 'THE MOB IS...',
-    resultMyBestGuess: 'MY BEST GUESS IS...',
-    resultMultiple: 'TOP CANDIDATES:',
-    resultQsAsked: 'QUESTIONS ASKED',
-    resultTimeUsed: 'TIME USED',
-    resultMobsLeft: 'MOBS LEFT',
-    resultScore: 'SCORE',
-    btnPlayAgain: '▶ PLAY AGAIN',
-    btnRevealAnswer: 'SHOW ANSWER',
-    hintNext: '💡 NEXT BEST QUESTION: ',
-    narrowingDown: 'NARROWING DOWN',
-    mobsRemaining: 'MOBS LEFT',
-    topPick: 'TOP PICK',
-    langToggle: '🌍 العربية',
-  },
-  ar: {
-    headerTitle: 'لعبة تخمين\nكيانات ماينكرافت',
-    headerSub: 'تغلب على صديقك · خمّن أسرع',
-    introTitle: 'فكّر في كيان...',
-    introDesc: 'اطلب من صديقك أن يفكر في أي كيان من ماينكرافت.\nأجب بنعم أو لا على كل سؤال.\nسأخمنه قبل أن تنتهي!',
-    diffLabel: 'اختر مستوى الصعوبة:',
-    'dname-easy': 'سهل', 'ddesc-easy': '~40 كيان\nالأكثر شيوعاً فقط',
-    'dname-normal': 'عادي', 'ddesc-normal': '~65 كيان\nمعظم الكيانات',
-    'dname-hard': 'صعب', 'ddesc-hard': '80+ كيان\nجميع الكيانات',
-    btnStart: '▶ ابدأ اللعبة',
-    introTip: 'نصيحة: دع صديقك يختار الكيان سراً، ثم أجب أنت على الأسئلة!',
-    progressRight: 'التضييق جاري...',
-    sidebarTitle: '🔍 الكيانات المحتملة',
-    historyLabel: 'سجل الإجابات:',
-    btnBestGuess: '⚡ أفضل تخمين الآن',
-    restart: 'إعادة البدء',
-    resultGuessing: 'أنا أفكر',
-    resultIs: 'الكيان هو...',
-    resultMyBestGuess: 'أفضل تخميني هو...',
-    resultMultiple: 'أفضل المرشحين:',
-    resultQsAsked: 'أسئلة تمّ سؤالها',
-    resultTimeUsed: 'الوقت المستخدم',
-    resultMobsLeft: 'كيانات متبقية',
-    resultScore: 'النتيجة',
-    btnPlayAgain: '▶ العب مرة أخرى',
-    btnRevealAnswer: 'أظهر الإجابة',
-    hintNext: '💡 أفضل سؤال تالٍ: ',
-    narrowingDown: 'التضييق جاري',
-    mobsRemaining: 'كيانات متبقية',
-    topPick: 'الأول',
-    langToggle: '🌍 English',
-  }
+// ─────────────────────────────────────────
+//  GAME STATE
+// ─────────────────────────────────────────
+let state = {
+  possible: [],
+  qIndex: 0,
+  qOrder: [],
+  history: [],
+  questionCount: 0,
+  timerInterval: null,
+  seconds: 0,
+  phase: "playing",   // playing | guessing | win | fail
+  guessIndex: 0,
 };
 
-// ============================================================
-//  GAME STATE
-// ============================================================
-let lang = 'en';
-let difficulty = 'easy';
-let remaining = [];
-let answers = []; // {qIndex, qText, answer}
-let currentQIndex = 0;
-let allQuestions = [];
-let timerInterval = null;
-let seconds = 0;
-let gameStarted = false;
-
-// ============================================================
-//  LANG
-// ============================================================
-function t(key) {
-  return T[lang][key] || T['en'][key] || key;
+function imgUrl(mob) {
+  return IMG_BASE + mob.img;
 }
 
-function toggleLang() {
-  lang = lang === 'en' ? 'ar' : 'en';
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  applyTranslations();
+function getTopMob(pool) {
+  return pool[0] || null;
 }
 
-function applyTranslations() {
-  document.getElementById('langBtn').textContent = t('langToggle');
-  document.getElementById('headerTitle').textContent = t('headerTitle');
-  document.getElementById('headerSub').textContent = t('headerSub');
-  document.getElementById('introTitle').textContent = t('introTitle');
-  document.getElementById('introDesc').textContent = t('introDesc');
-  document.getElementById('diffLabel').textContent = t('diffLabel');
-  document.getElementById('dname-easy').textContent = t('dname-easy');
-  document.getElementById('ddesc-easy').textContent = t('ddesc-easy');
-  document.getElementById('dname-normal').textContent = t('dname-normal');
-  document.getElementById('ddesc-normal').textContent = t('ddesc-normal');
-  document.getElementById('dname-hard').textContent = t('dname-hard');
-  document.getElementById('ddesc-hard').textContent = t('ddesc-hard');
-  document.getElementById('btnStart').textContent = t('btnStart');
-  document.getElementById('introTip').textContent = t('introTip');
-  document.getElementById('sidebarTitle').textContent = t('sidebarTitle');
-  document.getElementById('historyLabel').textContent = t('historyLabel');
-  document.getElementById('btnBestGuess').textContent = t('btnBestGuess');
-  document.querySelectorAll('[data-t="restart"]').forEach(el => el.textContent = t('restart'));
-
-  if (gameStarted) {
-    renderMobList();
-    renderQuestion();
-    renderHistory();
+// Returns the next question index that actually differentiates the current pool
+function nextUsefulQuestion(pool, usedIdx) {
+  for (let i = 0; i < QUESTIONS.length; i++) {
+    if (usedIdx.has(i)) continue;
+    const q = QUESTIONS[i];
+    const yes = pool.filter(m => m[q.key] === q.val).length;
+    const no  = pool.length - yes;
+    // Skip if question doesn't split (all same answer)
+    if (yes === 0 || no === 0) continue;
+    return i;
   }
+  return -1; // no useful question left
 }
 
-// ============================================================
-//  DIFFICULTY
-// ============================================================
-function selectDiff(d) {
-  difficulty = d;
-  document.querySelectorAll('.diff-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('diff-' + d).classList.add('selected');
-}
+// ─────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────
+function init() {
+  state.possible = [...MOBS_CLEAN];
+  state.qOrder   = [];
+  state.usedQ    = new Set();
+  state.history  = [];
+  state.questionCount = 0;
+  state.seconds  = 0;
+  state.phase    = "playing";
+  state.guessIndex = 0;
 
-// ============================================================
-//  GAME INIT
-// ============================================================
-function getMobsByDifficulty() {
-  const diffMap = { easy: ['easy'], normal: ['easy','normal'], hard: ['easy','normal','hard'] };
-  const allowed = diffMap[difficulty];
-  // Deduplicate by id
-  const seen = new Set();
-  return ALL_MOBS.filter(m => {
-    if (seen.has(m.id)) return false;
-    seen.add(m.id);
-    return allowed.includes(m.diff);
-  });
-}
-
-function startGame() {
-  remaining = getMobsByDifficulty();
-  answers = [];
-  currentQIndex = 0;
-  allQuestions = [...QUESTIONS];
-  gameStarted = true;
-
-  showScreen('screenGame');
-  document.getElementById('topRestartBtn') && (document.getElementById('restartBtnTop').style.display = 'inline-block');
-
-  startTimer();
-  renderMobList();
-  renderQuestion();
-  updateProgress();
-
-  document.getElementById('historyList').innerHTML = '';
-  document.getElementById('hintBox').classList.add('hidden');
-}
-
-function restartGame() {
-  stopTimer();
-  gameStarted = false;
-  showScreen('screenIntro');
-  document.getElementById('timerDisplay').classList.add('hidden');
-}
-
-// ============================================================
-//  TIMER
-// ============================================================
-function startTimer() {
-  seconds = 0;
-  document.getElementById('timerDisplay').classList.remove('hidden');
-  stopTimer();
-  timerInterval = setInterval(() => {
-    seconds++;
-    const m = String(Math.floor(seconds / 60)).padStart(2,'0');
-    const s = String(seconds % 60).padStart(2,'0');
-    const el = document.getElementById('timerDisplay');
-    el.textContent = `⏱ ${m}:${s}`;
-    if (seconds > 60) el.classList.add('danger');
-    else el.classList.remove('danger');
+  // Clear timer
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.seconds++;
+    const m = String(Math.floor(state.seconds / 60)).padStart(2, "0");
+    const s = String(state.seconds % 60).padStart(2, "0");
+    document.getElementById("timer").textContent = `${m}:${s}`;
   }, 1000);
-}
 
-function stopTimer() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-}
-
-function formatTime(s) {
-  const m = Math.floor(s/60);
-  const sec = s%60;
-  return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
-}
-
-// ============================================================
-//  SOUND (Web Audio API)
-// ============================================================
-let audioCtx = null;
-
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
-
-function playSound(type) {
-  try {
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    const now = ctx.currentTime;
-    if (type === 'yes') {
-      osc.frequency.setValueAtTime(440, now);
-      osc.frequency.linearRampToValueAtTime(660, now + 0.1);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-      osc.start(now); osc.stop(now + 0.2);
-    } else if (type === 'no') {
-      osc.frequency.setValueAtTime(330, now);
-      osc.frequency.linearRampToValueAtTime(200, now + 0.15);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-      osc.start(now); osc.stop(now + 0.25);
-    } else if (type === 'win') {
-      const freqs = [523, 659, 784, 1047];
-      freqs.forEach((f, i) => {
-        const o2 = ctx.createOscillator();
-        const g2 = ctx.createGain();
-        o2.connect(g2); g2.connect(ctx.destination);
-        const t = now + i * 0.12;
-        o2.frequency.value = f;
-        g2.gain.setValueAtTime(0.2, t);
-        g2.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-        o2.start(t); o2.stop(t + 0.3);
-      });
-    } else if (type === 'narrow') {
-      osc.frequency.setValueAtTime(880, now);
-      gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      osc.start(now); osc.stop(now + 0.08);
-    }
-  } catch(e) {}
-}
-
-// ============================================================
-//  ANSWER PROCESSING
-// ============================================================
-function answer(ans) {
-  const q = allQuestions[currentQIndex];
-  if (!q) return;
-
-  // Flash effect
-  const flash = document.getElementById('flash');
-  flash.className = 'flash ' + (ans ? 'yes' : 'no') + ' active';
-  setTimeout(() => flash.className = 'flash', 400);
-
-  playSound(ans ? 'yes' : 'no');
-
-  // Record answer
-  answers.push({ qText: lang === 'en' ? q.en : q.ar, answer: ans });
-
-  // Filter remaining
-  remaining = remaining.filter(mob => q.filter(mob, ans));
-
+  updateMobPanel(null);
+  showQuestionPanel();
   renderHistory();
-  currentQIndex++;
+  findAndShowNextQuestion();
+}
 
-  if (remaining.length === 0) {
-    showResult(null, true);
-    return;
-  }
-  if (remaining.length === 1) {
-    playSound('win');
-    showResult(remaining[0], false);
-    return;
-  }
+function restart() { init(); }
 
-  // Check if we have more fixed questions
-  if (currentQIndex < allQuestions.length) {
-    // Inject smart extra questions if useful
-    injectSmartQuestions();
-    renderMobList();
-    renderQuestion();
-    updateProgress();
-    showSmartHint();
+// ─────────────────────────────────────────
+//  QUESTION FLOW
+// ─────────────────────────────────────────
+function findAndShowNextQuestion() {
+  if (state.possible.length === 1) { doGuess(); return; }
+  if (state.possible.length === 0) { doFail(); return; }
+
+  const qi = nextUsefulQuestion(state.possible, state.usedQ);
+  if (qi === -1 || state.questionCount >= 20) { doGuess(); return; }
+
+  state.currentQI = qi;
+  state.usedQ.add(qi);
+  state.questionCount++;
+
+  const q = QUESTIONS[qi];
+  const prog = Math.min(100, (state.questionCount / 12) * 100);
+
+  document.getElementById("prog-fill").style.width = prog + "%";
+  document.getElementById("prog-label").textContent = "STEP " + state.questionCount;
+  document.getElementById("q-step").textContent = "QUESTION " + state.questionCount + " — NARROWING DOWN...";
+  document.getElementById("q-text").textContent = q.text;
+
+  // Update mob panel to show top candidate
+  updateMobPanel(getTopMob(state.possible));
+  updatePossibleList(state.possible);
+}
+
+function answer(isYes) {
+  if (state.phase !== "playing") return;
+
+  const q = QUESTIONS[state.currentQI];
+  const ansText = isYes ? "YES" : "NO";
+
+  // Filter pool
+  if (isYes) {
+    state.possible = state.possible.filter(m => m[q.key] === q.val);
   } else {
-    // All questions done
-    playSound('win');
-    showResult(null, true);
+    state.possible = state.possible.filter(m => m[q.key] !== q.val);
   }
+
+  // Record history
+  state.history.push({ q: q.text, a: ansText });
+  renderHistory();
+
+  findAndShowNextQuestion();
 }
 
-function injectSmartQuestions() {
-  // Check if remaining extra questions would be useful
-  EXTRA_QUESTIONS.forEach(eq => {
-    if (!allQuestions.find(q => q.id === eq.id)) {
-      const yes = remaining.filter(m => eq.filter(m, true)).length;
-      const no  = remaining.filter(m => eq.filter(m, false)).length;
-      // Only add if it splits usefully
-      if (yes > 0 && no > 0) {
-        allQuestions.push(eq);
-      }
-    }
-  });
+function forceGuess() {
+  if (state.phase !== "playing") return;
+  doGuess();
 }
 
-// Best distinguishing question from remaining attributes
-function showSmartHint() {
-  const hintBox = document.getElementById('hintBox');
-  const hintText = document.getElementById('hintText');
-  if (remaining.length <= 3) { hintBox.classList.add('hidden'); return; }
+// ─────────────────────────────────────────
+//  GUESSING
+// ─────────────────────────────────────────
+function doGuess() {
+  state.phase = "guessing";
+  state.guessIndex = 0;
+  clearInterval(state.timerInterval);
 
-  // Find the best split among unasked attributes
-  const attrs = [
-    { key: 'fly',      en:'Can it fly?',     ar:'هل يطير؟' },
-    { key: 'humanoid', en:'Is it humanoid?', ar:'هل شكله بشري؟' },
-    { key: 'big',      en:'Is it bigger than a player?', ar:'هل هو أكبر من اللاعب؟' },
-    { key: 'tamable',  en:'Can it be tamed?', ar:'هل يمكن ترويضه؟' },
-    { key: 'rare',     en:'Does it drop rare items?', ar:'هل يسقط أشياء نادرة؟' },
-  ];
+  if (state.possible.length === 0) { doFail(); return; }
 
-  let bestAttr = null, bestScore = Infinity;
-  attrs.forEach(a => {
-    const yes = remaining.filter(m => m[a.key]).length;
-    const no  = remaining.length - yes;
-    const score = Math.abs(yes - no); // closer to 0 = better split
-    if (score < bestScore && yes > 0 && no > 0) {
-      bestScore = score;
-      bestAttr = a;
-    }
-  });
+  showGuessScreen(state.possible[state.guessIndex]);
+}
 
-  if (bestAttr) {
-    hintText.textContent = t('hintNext') + (lang === 'en' ? bestAttr.en : bestAttr.ar);
-    hintBox.classList.remove('hidden');
+function guessWrong() {
+  state.guessIndex++;
+  if (state.guessIndex >= state.possible.length) {
+    doFail();
   } else {
-    hintBox.classList.add('hidden');
+    showGuessScreen(state.possible[state.guessIndex]);
   }
 }
 
-function bestGuessNow() {
-  playSound('win');
-  if (remaining.length === 0) showResult(null, true);
-  else showResult(remaining[0], remaining.length > 1);
+function guessCorrect() {
+  state.phase = "win";
+  doWin(state.possible[state.guessIndex]);
 }
 
-// ============================================================
-//  RENDER QUESTION
-// ============================================================
-function renderQuestion() {
-  const q = allQuestions[currentQIndex];
-  if (!q) return;
-  document.getElementById('qNumber').textContent = (lang === 'en' ? 'QUESTION ' : 'سؤال ') + (currentQIndex + 1) + ':';
-  document.getElementById('qText').textContent = lang === 'en' ? q.en : q.ar;
-  document.getElementById('btnYes').textContent = lang === 'en' ? '✔ YES' : '✔ نعم';
-  document.getElementById('btnNo').textContent  = lang === 'en' ? '✘ NO'  : '✘ لا';
-}
-
-// ============================================================
-//  RENDER PROGRESS
-// ============================================================
-function updateProgress() {
-  const total = Math.max(allQuestions.length, 7);
-  const pct = Math.min(100, (currentQIndex / total) * 100);
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent =
-    (lang === 'en' ? 'STEP ' : 'خطوة ') + currentQIndex + ' / ' + total;
-  document.getElementById('progressRight').textContent =
-    remaining.length + ' ' + t('mobsRemaining');
-}
-
-// ============================================================
-//  RENDER MOB LIST (sidebar)
-// ============================================================
-function renderMobList() {
-  const list = document.getElementById('mobList');
-  const badge = document.getElementById('mobCountBadge');
-  badge.textContent = remaining.length;
-
-  // Sort by probability (equal for all right now, but sort by type)
-  const sorted = [...remaining].sort((a, b) => {
-    // Bosses last
-    if (a.type === 'boss' && b.type !== 'boss') return 1;
-    if (b.type === 'boss' && a.type !== 'boss') return -1;
-    return 0;
-  });
-
-  list.innerHTML = sorted.map((mob, i) => {
-    const prob = ((1 / remaining.length) * 100).toFixed(1);
-    const isTop = i === 0;
-    return `<div class="mob-item ${isTop ? 'top-pick' : ''}">
-      ${isTop ? '<span class="top-crown">👑</span>' : ''}
-      <span class="mob-emoji">${mob.emoji}</span>
-      <span class="mob-name">${lang === 'en' ? mob.en : mob.ar}</span>
-      <span class="mob-prob ${prob > 20 ? 'high' : ''}">${prob}%</span>
-    </div>`;
-  }).join('');
-
-  if (sorted.length > 0) playSound('narrow');
-}
-
-// ============================================================
-//  RENDER HISTORY
-// ============================================================
-function renderHistory() {
-  const list = document.getElementById('historyList');
-  list.innerHTML = answers.map(a => {
-    const badge = a.answer
-      ? `<span class="ans-badge ans-yes">${lang === 'en' ? 'YES' : 'نعم'}</span>`
-      : `<span class="ans-badge ans-no">${lang === 'en' ? 'NO' : 'لا'}</span>`;
-    return `<div class="history-row">${badge}<span>${a.qText}</span></div>`;
-  }).join('');
-}
-
-// ============================================================
-//  RESULT SCREEN
-// ============================================================
-function showResult(mob, multiple) {
-  stopTimer();
-  showScreen('screenResult');
-
-  const card = document.getElementById('resultCard');
-  const timeStr = formatTime(seconds);
-  const qAsked = answers.length;
-
-  let html = '';
-
-  if (!mob && !multiple) {
-    // No mobs left
-    html = `
-      <span class="result-emoji">😅</span>
-      <div class="result-label">${lang === 'en' ? 'HMMMM... I COULDN\'T FIND IT' : 'لم أتمكن من تخمينه!'}</div>
-      <div class="result-name" style="font-size:14px;color:var(--gold)">${lang === 'en' ? 'UNKNOWN MOB?' : 'كيان غير معروف؟'}</div>
-      <div class="result-dimension">${lang === 'en' ? 'No mobs matched your answers. Maybe try again?' : 'لا يوجد كيان يطابق إجاباتك. حاول مجدداً؟'}</div>
-    `;
-  } else if (!multiple && mob) {
-    // Single mob found
-    html = `
-      <span class="result-emoji">${mob.emoji}</span>
-      <div class="result-label">${t('resultIs')}</div>
-      <div class="result-name">${lang === 'en' ? mob.en : mob.ar}</div>
-      <div class="result-dimension">${getDimLabel(mob)}</div>
-      <div class="stats-row">
-        <div class="stat-chip"><strong>${qAsked}</strong>${t('resultQsAsked')}</div>
-        <div class="stat-chip"><strong>${timeStr}</strong>${t('resultTimeUsed')}</div>
-        <div class="stat-chip"><strong>1</strong>${t('resultMobsLeft')}</div>
-      </div>
-    `;
-    launchConfetti();
-  } else {
-    // Multiple mobs remain
-    const top6 = remaining.slice(0, 6);
-    const prob = ((1 / remaining.length) * 100).toFixed(1);
-    html = `
-      <span class="result-emoji">${mob ? mob.emoji : top6[0].emoji}</span>
-      <div class="result-label">${t('resultMyBestGuess')}</div>
-      <div class="result-name">${mob ? (lang === 'en' ? mob.en : mob.ar) : (lang === 'en' ? top6[0].en : top6[0].ar)}</div>
-      <div class="result-dimension">${lang === 'en' ? 'Confidence: ' : 'الثقة: '}${prob}%</div>
-      <div class="stats-row">
-        <div class="stat-chip"><strong>${qAsked}</strong>${t('resultQsAsked')}</div>
-        <div class="stat-chip"><strong>${timeStr}</strong>${t('resultTimeUsed')}</div>
-        <div class="stat-chip"><strong>${remaining.length}</strong>${t('resultMobsLeft')}</div>
-      </div>
-      <div class="candidates-title">${t('resultMultiple')}</div>
-      <div class="candidates-grid">
-        ${top6.map((m, i) => `
-          <div class="cand-card">
-            <span class="cand-emoji">${m.emoji}</span>
-            <div class="cand-name">${lang === 'en' ? m.en : m.ar}</div>
-            <div class="cand-pct">${i === 0 ? '👑 ' : ''}${((1/remaining.length)*100).toFixed(1)}%</div>
-          </div>`).join('')}
-      </div>
-    `;
-  }
-
-  html += `
-    <div class="btn-group" style="margin-top:24px">
-      <button class="btn-primary" onclick="startGame()">${t('btnPlayAgain')}</button>
-      <button class="btn-secondary" onclick="restartGame()">↩ ${t('restart')}</button>
+// ─────────────────────────────────────────
+//  UI SCREENS
+// ─────────────────────────────────────────
+function showQuestionPanel() {
+  const qp = document.getElementById("question-panel");
+  qp.innerHTML = `
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <span class="progress-label" id="prog-label">STEP 0</span>
+    </div>
+    <div class="q-step" id="q-step">QUESTION 1 — NARROWING DOWN...</div>
+    <div class="q-text" id="q-text">Loading...</div>
+    <div class="btn-row" id="btn-row">
+      <button class="btn btn-yes" onclick="answer(true)">✔ YES</button>
+      <button class="btn btn-no"  onclick="answer(false)">✘ NO</button>
+      <button class="btn btn-guess" onclick="forceGuess()">⚡ GUESS NOW</button>
+      <button class="btn btn-restart" onclick="restart()">↺ RESTART</button>
+    </div>
+    <div class="history-box" id="history-box">
+      <div class="history-label">ANSWER HISTORY</div>
     </div>
   `;
-
-  card.innerHTML = html;
 }
 
-function getDimLabel(mob) {
-  const dims = mob.dim.map(d => {
-    if (lang === 'en') return d.charAt(0).toUpperCase() + d.slice(1);
-    const map = { overworld: 'العالم العادي', nether: 'الجحيم', end: 'النهاية' };
-    return map[d] || d;
-  });
-  return dims.join(' / ');
+function showGuessScreen(mob) {
+  updateMobPanel(mob, "guessing");
+  const qp = document.getElementById("question-panel");
+  qp.innerHTML = `
+    <div class="guess-screen">
+      <div class="guess-label">MY GUESS IS...</div>
+      <div class="guess-mob-name">${mob.name}</div>
+      <div class="guess-sub">Are you thinking of ${mob.name}?</div>
+      <div class="result-btn-row">
+        <button class="btn-correct" onclick="guessCorrect()">✔ YES, CORRECT!</button>
+        <button class="btn-wrong"   onclick="guessWrong()">✘ NO, WRONG</button>
+      </div>
+      <div style="margin-top:4px">
+        <button class="btn btn-restart" onclick="restart()">↺ START OVER</button>
+      </div>
+    </div>
+  `;
 }
 
-// ============================================================
-//  CONFETTI
-// ============================================================
-function launchConfetti() {
-  const colors = ['#5ab552','#f5c542','#c0392b','#3498db','#9b59b6','#1abc9c'];
-  for (let i = 0; i < 50; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.cssText = `
-      left: ${Math.random() * 100}%;
-      background: ${colors[Math.floor(Math.random() * colors.length)]};
-      width: ${6 + Math.random() * 8}px;
-      height: ${6 + Math.random() * 8}px;
-      border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
-      animation-duration: ${1.5 + Math.random() * 2}s;
-      animation-delay: ${Math.random() * 0.8}s;
-    `;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 3500);
+function doWin(mob) {
+  updateMobPanel(mob, "correct");
+  const qp = document.getElementById("question-panel");
+  qp.innerHTML = `
+    <div class="end-screen">
+      <div class="end-title win">I GOT IT!</div>
+      <div class="end-mob-img">
+        <img src="${imgUrl(mob)}" alt="${mob.name}" onerror="this.style.display='none'">
+      </div>
+      <div style="font-family:var(--pixel);font-size:12px;color:#4ade80">${mob.name}</div>
+      <div class="end-score">
+        QUESTIONS ASKED: ${state.questionCount}<br>
+        MOBS REMAINING: ${state.possible.length}
+      </div>
+      <button class="btn btn-restart" onclick="restart()" style="margin-top:4px">↺ PLAY AGAIN</button>
+    </div>
+  `;
+}
+
+function doFail() {
+  state.phase = "fail";
+  clearInterval(state.timerInterval);
+  updateMobPanel(null);
+  const qp = document.getElementById("question-panel");
+  qp.innerHTML = `
+    <div class="end-screen">
+      <div class="end-title fail">YOU GOT ME!<br>I COULDN'T GUESS!</div>
+      <div class="end-score">QUESTIONS ASKED: ${state.questionCount}</div>
+      <div class="guess-sub" style="font-size:20px;color:var(--muted)">What mob were you thinking of?<br>We might need to add it!</div>
+      <button class="btn btn-restart" onclick="restart()" style="margin-top:8px">↺ PLAY AGAIN</button>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────
+//  SIDE PANEL UPDATES
+// ─────────────────────────────────────────
+function updateMobPanel(mob, state_class) {
+  const box  = document.getElementById("mob-img-box");
+  const name = document.getElementById("mob-name-display");
+  const cnt  = document.getElementById("mob-count");
+
+  box.className = "mob-img-box" + (state_class ? " " + state_class : "");
+
+  if (mob) {
+    box.innerHTML = `<img src="${imgUrl(mob)}" alt="${mob.name}" onerror="this.parentNode.innerHTML='<span class=\\'question-mark\\'>?</span>'">`;
+    name.textContent = mob.name;
+  } else {
+    box.innerHTML = `<span class="question-mark">?</span>`;
+    name.textContent = "???";
   }
+
+  cnt.textContent = state.possible.length + " mob" + (state.possible.length !== 1 ? "s" : "") + " left";
 }
 
-// ============================================================
-//  SCREEN MANAGEMENT
-// ============================================================
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function updatePossibleList(pool) {
+  const el = document.getElementById("possible-list");
+  if (!el) return;
+  el.innerHTML = pool.slice(0, 12).map((m, i) =>
+    `<div class="possible-item${i < 3 ? ' highlight' : ''}">${i === 0 ? '▶ ' : '· '}${m.name}</div>`
+  ).join("") + (pool.length > 12 ? `<div class="possible-item">...and ${pool.length - 12} more</div>` : "");
 }
 
-// ============================================================
-//  INIT
-// ============================================================
-applyTranslations();
+function renderHistory() {
+  const box = document.getElementById("history-box");
+  if (!box) return;
+  box.innerHTML = `<div class="history-label">ANSWER HISTORY</div>` +
+    state.history.slice(-8).map(h =>
+      `<div class="history-item"><span class="ans-${h.a === 'YES' ? 'y' : 'n'}">${h.a}</span><span>${h.q}</span></div>`
+    ).join("");
+  box.scrollTop = box.scrollHeight;
+}
+
+// ─────────────────────────────────────────
+//  START
+// ─────────────────────────────────────────
+init();
 </script>
 </body>
 </html>
